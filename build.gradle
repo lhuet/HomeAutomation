@@ -1,0 +1,13 @@
+plugins {
+    id 'idea'
+}
+
+ext {
+    vertxVersion = '3.2.0'
+}
+
+idea {
+    project {
+        languageLevel = '1.8'
+    }
+}
