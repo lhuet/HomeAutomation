@@ -40,8 +40,6 @@ public class Ds18b20VerticleTest {
     public void ds18b20ReadDhwTempTest(TestContext context) throws InterruptedException {
 
         final Async async = context.async();
-        // TODO Replace with a solution more async compliant ...
-        Thread.sleep(100);
         vertx.eventBus().send("dhw-temp", "dhw", event -> {
             if (event.succeeded()) {
                 Assert.assertEquals(55.937f, event.result().body());
@@ -53,8 +51,6 @@ public class Ds18b20VerticleTest {
     @Test
     public void ds18b20ReadDhwBufferTest(TestContext context) throws InterruptedException {
         final Async async = context.async();
-        // TODO Replace with a solution more async compliant ...
-        Thread.sleep(100);
         vertx.eventBus().send("dhw-temp", "buffer", event -> {
             if (event.succeeded()) {
                 Assert.assertEquals(58.437f, event.result().body());

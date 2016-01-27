@@ -3,6 +3,7 @@ package fr.lhuet.home.hardware;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.logging.Logger;
@@ -51,26 +52,29 @@ public class Ds18b20Verticle extends AbstractVerticle {
         });
 
         // Read the 2 temp sensors "immediately"
-        readTemp();
+        readTemp(event1 -> {
+            logger.debug("Temp sensor reading finished");
+            fut.complete();
+        });
         // .. and continue refreshing the 2 temp. sensors every minute
         vertx.setPeriodic(60000, event -> {
-            readTemp();
+            readTemp(event1 -> {
+                logger.debug("Temp sensor reading finished");
+            });
         });
 
-        fut.complete();
-
     }
 
-    private void readTemp() {
-        try {
-            readW1temp(w1DhwFile, DHWSENSOR);
-            readW1temp(w1BufferFile, BUFFERSENSOR);
-        } catch (IOException e) {
-            logger.error("Exception while reading 1-Wire virtual file", e);
-        }
+    private void readTemp(Handler<AsyncResult> resultHandler) {
+
+        readW1temp(w1DhwFile, DHWSENSOR, event1 -> {
+            readW1temp(w1BufferFile, BUFFERSENSOR, event2 -> {
+                resultHandler.handle(Future.succeededFuture());
+            });
+        });
     }
 
-    private void readW1temp(String file, int sensor) throws IOException {
+    private void readW1temp(String file, int sensor, Handler<AsyncResult> handlerResult) {
         // w1 file content like :
         //    ce 02 4b 46 7f ff 02 10 0c : crc=0c YES
         //    ce 02 4b 46 7f ff 02 10 0c t=44875
@@ -90,9 +94,11 @@ public class Ds18b20Verticle extends AbstractVerticle {
                         break;
                     default:
                         logger.error("readW1temp -> Bad sensor switch");
+                        handlerResult.handle(Future.failedFuture("readW1temp -> Bad sensor switch"));
                 }
+                handlerResult.handle(Future.succeededFuture());
             } else {
-                throw new RuntimeException("(One Wire bus error) Bad CRC on file " + file);
+                handlerResult.handle(Future.failedFuture("(One Wire bus error) Bad CRC on file " + file));
             }
         });
     }
