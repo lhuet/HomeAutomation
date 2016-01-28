@@ -9,8 +9,6 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-import java.io.IOException;
-
 /**
  * Created by lhuet on 31/12/15.
  */
@@ -85,11 +83,11 @@ public class Ds18b20Verticle extends AbstractVerticle {
                 String[] temp = content.split("t=");
                 switch (sensor) {
                     case DHWSENSOR:
-                        this.dhwTemp = Float.valueOf(temp[1]).floatValue()/1000;
+                        this.dhwTemp = Float.valueOf(temp[1])/1000;
                         logger.debug("Refreshing DHW Temp sensor value : " + this.dhwTemp);
                         break;
                     case BUFFERSENSOR:
-                        this.bufferTemp = Float.valueOf(temp[1]).floatValue()/1000;
+                        this.bufferTemp = Float.valueOf(temp[1])/1000;
                         logger.debug("Refreshing Buffer Temp sensor value : " + this.bufferTemp);
                         break;
                     default:

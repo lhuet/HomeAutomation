@@ -5,8 +5,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 
-import java.util.Date;
-
 /**
  * Created by lhuet on 25/01/16.
  */
@@ -58,13 +56,13 @@ public class MongoVerticle extends AbstractVerticle{
 
         MongoClient mongoClient = MongoClient.createShared(vertx, mongoConfig);
 
-        JsonObject criteria = new JsonObject();
-        criteria.put("$gte", new JsonObject().put("$date", date + "T00:00:00.000Z"));
-        criteria.put("$lte", new JsonObject().put("$date", date + "T23:59:59.999Z"));
-        JsonObject query = new JsonObject();
-        query.put("datetime", criteria);
+        String query = "{\"datetime\":{" +
+                "\"$gte\":{\"$date\":\"" +date + "T00:00:00.000Z\"}," +
+                "\"$lte\":{\"$date\":\"" +date + "T23:59:59.999Z\"}" +
+                "}}";
+        JsonObject jsonQuery = new JsonObject(query);
 
-        mongoClient.find(teleinfoCollection, query, res -> {
+        mongoClient.find(teleinfoCollection, jsonQuery, res -> {
             if (res.succeeded()) {
                 JsonArray result = new JsonArray();
                 for (JsonObject item : res.result()) {
