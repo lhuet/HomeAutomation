@@ -9,7 +9,7 @@ import io.vertx.core.eventbus.MessageConsumer;
 public class TeleinfoVerticle extends AbstractVerticle{
 
     @Override
-    public void start() throws Exception {
+    public void start() {
         MessageConsumer<String> consumer = vertx.eventBus().consumer("teleinfo-verticle");
 
         consumer.handler(msg -> {
