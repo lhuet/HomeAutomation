@@ -1,6 +1,7 @@
 package fr.lhuet.home.hardware;
 
 import io.vertx.core.*;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
@@ -46,6 +47,9 @@ public class MongoVerticle extends AbstractVerticle{
             getTeleinfoDataOfTheDay(event.body().toString(), teleinfoRes -> {
                 event.reply(teleinfoRes.result());
             });
+            getTeleinfoDataOfTheDayBuffer(event.body().toString(), teleinfoRes -> {
+                System.out.println("Appel de test");
+            });
         });
 
         startFuture.complete();
@@ -78,6 +82,28 @@ public class MongoVerticle extends AbstractVerticle{
                 resultHandler.handle(Future.succeededFuture(result));
             }
             else {
+                resultHandler.handle(Future.failedFuture("Mongo query error"));
+            }
+        });
+
+    }
+
+    private void getTeleinfoDataOfTheDayBuffer(String date, Handler<AsyncResult<Buffer>> resultHandler) {
+
+        MongoClient mongoClient = MongoClient.createShared(vertx, mongoConfig);
+
+        String query = "{\"datetime\":{" +
+                            "\"$gte\":{\"$date\":\"" +date + "T00:00:00.000Z\"}," +
+                            "\"$lte\":{\"$date\":\"" +date + "T23:59:59.999Z\"}" +
+                        "}}";
+        JsonObject jsonQuery = new JsonObject(query);
+
+        mongoClient.find(teleinfoCollection, jsonQuery, res -> {
+            if (res.succeeded()) {
+                System.out.println("size : " + res.result().size());
+                // TODO : Test serialization
+                resultHandler.handle(Future.succeededFuture());
+            } else {
                 resultHandler.handle(Future.failedFuture("Mongo query error"));
             }
         });
