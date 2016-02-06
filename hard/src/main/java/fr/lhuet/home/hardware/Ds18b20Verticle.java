@@ -1,9 +1,6 @@
 package fr.lhuet.home.hardware;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.logging.Logger;
@@ -50,29 +47,32 @@ public class Ds18b20Verticle extends AbstractVerticle {
         });
 
         // Read the 2 temp sensors "immediately"
-        readTemp(event1 -> {
+        readTemp(event -> {
             logger.debug("Temp sensor reading finished");
             fut.complete();
         });
         // .. and continue refreshing the 2 temp. sensors every minute
         vertx.setPeriodic(60000, event -> {
-            readTemp(event1 -> {
-                logger.debug("Temp sensor reading finished");
-            });
+            readTemp(event1 -> logger.debug("Temp sensor reading finished"));
         });
 
     }
 
     private void readTemp(Handler<AsyncResult> resultHandler) {
 
-        readW1temp(w1DhwFile, DHWSENSOR, event1 -> {
-            readW1temp(w1BufferFile, BUFFERSENSOR, event2 -> {
-                resultHandler.handle(Future.succeededFuture());
-            });
+        Future<Void> dhwFut = Future.future();
+        Future<Void> bufferFut = Future.future();
+
+        readW1temp(w1DhwFile, DHWSENSOR, dhwFut.completer());
+        readW1temp(w1BufferFile, BUFFERSENSOR, bufferFut.completer());
+
+        CompositeFuture.all(dhwFut, bufferFut).setHandler( event -> {
+            resultHandler.handle(Future.succeededFuture());
         });
+
     }
 
-    private void readW1temp(String file, int sensor, Handler<AsyncResult> handlerResult) {
+    private void readW1temp(String file, int sensor, Handler<AsyncResult<Void>> resultHandler) {
         // w1 file content like :
         //    ce 02 4b 46 7f ff 02 10 0c : crc=0c YES
         //    ce 02 4b 46 7f ff 02 10 0c t=44875
@@ -92,11 +92,11 @@ public class Ds18b20Verticle extends AbstractVerticle {
                         break;
                     default:
                         logger.error("readW1temp -> Bad sensor switch");
-                        handlerResult.handle(Future.failedFuture("readW1temp -> Bad sensor switch"));
+                        resultHandler.handle(Future.failedFuture("readW1temp -> Bad sensor switch"));
                 }
-                handlerResult.handle(Future.succeededFuture());
+                resultHandler.handle(Future.succeededFuture());
             } else {
-                handlerResult.handle(Future.failedFuture("(One Wire bus error) Bad CRC on file " + file));
+                resultHandler.handle(Future.failedFuture("(One Wire bus error) Bad CRC on file " + file));
             }
         });
     }
