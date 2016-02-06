@@ -1,6 +1,6 @@
 package fr.lhuet.home.domoweb;
 
-import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -10,7 +10,7 @@ public class TeleinfoWebHandler {
 
 
     public static void getIinst(RoutingContext ctx) {
-        EventBus send = ctx.vertx().eventBus().send("teleinfo-verticle", "getIinst", msg -> {
+        ctx.vertx().eventBus().send("teleinfo-verticle", "getIinst", msg -> {
             if (msg.succeeded()) {
                 ctx.response().end("Get I inst : " + msg.result().body().toString() + " !");
             }
@@ -26,5 +26,20 @@ public class TeleinfoWebHandler {
 
     public static void getIndex(RoutingContext ctx) {
         ctx.response().end("get Index !");
+    }
+
+    public static void getTeleinfoDataByDay(RoutingContext ctx) {
+        String dateRequest = ctx.request().getParam("year") + "-" +
+                ctx.request().getParam("month") + "-" +
+                ctx.request().getParam("day");
+        System.out.println("dateRequest : " + dateRequest);
+        ctx.vertx().eventBus().send("teleinfo-getDataOfTheDay", dateRequest, res -> {
+            if (res.succeeded()) {
+                System.out.println("response ok");
+                ctx.response().write(res.result().body().toString());
+            } else {
+                ctx.response().setStatusCode(500).end(res.cause().getMessage());
+            }
+        });
     }
 }
