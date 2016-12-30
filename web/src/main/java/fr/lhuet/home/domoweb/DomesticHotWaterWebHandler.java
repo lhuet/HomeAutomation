@@ -1,5 +1,7 @@
 package fr.lhuet.home.domoweb;
 
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -7,12 +9,29 @@ import io.vertx.ext.web.RoutingContext;
  */
 public class DomesticHotWaterWebHandler {
 
+    private static Logger logger = LoggerFactory.getLogger(DomesticHotWaterWebHandler.class);
+
     public static void getBufferTemperature(RoutingContext ctx) {
-        ctx.response().end("get Buffer Temp");
+
+        ctx.vertx().eventBus().send("dhw-temp", "buffer", response -> {
+            ctx.response().end(response.result().body().toString());
+        });
+
     }
 
     public static void getDhwTemperature(RoutingContext ctx) {
-        ctx.response().end("get DHW Temp ");
+
+        ctx.vertx().eventBus().send("dhw-temp", "dhw", response -> {
+            ctx.response().end(response.result().body().toString());
+        });
+
+    }
+
+    public static void getTemperature(RoutingContext ctx) {
+
+        ctx.vertx().eventBus().send("dhw-temp", "", response -> {
+            ctx.response().end(response.result().body().toString());
+        });
     }
 
 }

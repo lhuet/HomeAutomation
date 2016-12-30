@@ -1,14 +1,19 @@
 
 plugins {
+    id 'idea'
     id 'java'
     id 'application'
     id 'com.github.johnrengelman.shadow' version '1.2.2'
 }
 
 repositories {
-    mavenCentral()
+    jcenter()
+//    mavenCentral()
+//    maven {
+//        url 'http://oss.sonatype.org/content/repositories/snapshots/'
+//    }
     maven {
-        url = 'http://oss.sonatype.org/content/repositories/snapshots/'
+        url 'https://raw.github.com/grafjo/rxtx/master/releases/'
     }
 }
 
@@ -21,7 +26,12 @@ sourceCompatibility = '1.8'
 dependencies {
     compile 'io.vertx:vertx-core:'+vertxVersion
     compile 'io.vertx:vertx-hazelcast:'+vertxVersion
-    compile 'io.vertx:vertx-mongo-client:'+vertxVersion
+    //compile 'io.vertx:vertx-mongo-client:'+vertxVersion
+    compile 'org.elasticsearch.client:rest:5.1.1'
+    //compile 'com.englishtown.vertx:vertx-elasticsearch-service:2.2.0'
+    //compile 'com.englishtown.vertx:vertx-guice:2.3.1'
+    compile 'gnu.io:rxtx:2.2pre2'
+    //compile 'com.neuronrobotics:nrjavaserial:3.12.1'
     testCompile 'io.vertx:vertx-unit:'+vertxVersion
     testCompile 'junit:junit:4.12'
 }

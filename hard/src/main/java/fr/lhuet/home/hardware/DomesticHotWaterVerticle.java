@@ -3,18 +3,24 @@ package fr.lhuet.home.hardware;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+
+import java.time.Instant;
 
 /**
  * Created by lhuet on 31/12/15.
  */
-public class Ds18b20Verticle extends AbstractVerticle {
+public class DomesticHotWaterVerticle extends AbstractVerticle {
 
-    private static Logger logger = LoggerFactory.getLogger(Ds18b20Verticle.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(DomesticHotWaterVerticle.class.getName());
 
     private static final int DHWSENSOR = 0;
     private static final int BUFFERSENSOR = 1;
+
+    private static final String ES_INDEX = "temperature";
+    private static final String ES_TYPE_DOC = "temp.ecs";
 
     private String w1DhwFile;
     private String w1BufferFile;
@@ -34,26 +40,35 @@ public class Ds18b20Verticle extends AbstractVerticle {
         // Handler to serve the sensors values on the vertx event loop
         MessageConsumer<String> dhwConsumer = vertx.eventBus().consumer("dhw-temp");
         dhwConsumer.handler(event -> {
+            JsonObject response = new JsonObject();
             switch (event.body()) {
                 case "dhw":
-                    event.reply(this.dhwTemp);
+                    response.put("dhw", this.dhwTemp);
+                    event.reply(response);
                     break;
                 case "buffer":
-                    event.reply(this.bufferTemp);
+                    response.put("buffer", this.bufferTemp);
+                    event.reply(response);
                     break;
                 default:
-                    event.reply(Double.valueOf(null));
+                    response.put("dhw", this.dhwTemp);
+                    response.put("buffer", this.bufferTemp);
+                    event.reply(response);
             }
         });
 
         // Read the 2 temp sensors "immediately"
         readTemp(event -> {
             logger.debug("Temp sensor reading finished");
+            indexTempIntoES();
             fut.complete();
         });
         // .. and continue refreshing the 2 temp. sensors every minute
         vertx.setPeriodic(60000, event -> {
-            readTemp(event1 -> logger.debug("Temp sensor reading finished"));
+            readTemp(event1 -> {
+                logger.debug("Temp sensor reading finished");
+                indexTempIntoES();
+            });
         });
 
     }
@@ -84,11 +99,11 @@ public class Ds18b20Verticle extends AbstractVerticle {
                 switch (sensor) {
                     case DHWSENSOR:
                         this.dhwTemp = Float.valueOf(temp[1])/1000;
-                        logger.debug("Refreshing DHW Temp sensor value : " + this.dhwTemp);
+                        logger.info("Refreshing DHW Temp sensor value : " + this.dhwTemp);
                         break;
                     case BUFFERSENSOR:
                         this.bufferTemp = Float.valueOf(temp[1])/1000;
-                        logger.debug("Refreshing Buffer Temp sensor value : " + this.bufferTemp);
+                        logger.info("Refreshing Buffer Temp sensor value : " + this.bufferTemp);
                         break;
                     default:
                         logger.error("readW1temp -> Bad sensor switch");
@@ -101,5 +116,27 @@ public class Ds18b20Verticle extends AbstractVerticle {
         });
     }
 
+
+    private void indexTempIntoES() {
+
+        JsonObject docToindex = new JsonObject()
+                                    .put("timestamp", Instant.now())
+                                    .put("buffer", this.bufferTemp)
+                                    .put("dhw", this.dhwTemp);
+        JsonObject message = new JsonObject()
+                                    .put("index", ES_INDEX)
+                                    .put("type", ES_TYPE_DOC)
+                                    .put("source", docToindex);
+
+        vertx.eventBus().send("elastic.index", message, msg -> {
+            if (msg.succeeded()) {
+                logger.info(msg.result().body());
+            }
+            else {
+                logger.error("indexTempIntoES Error ...", msg.cause());
+            }
+        });
+
+    }
 
 }

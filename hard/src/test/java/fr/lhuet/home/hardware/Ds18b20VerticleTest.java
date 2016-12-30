@@ -27,7 +27,7 @@ public class Ds18b20VerticleTest {
         conf.put("dhw-system.dhw", getClass().getClassLoader().getResource("w1-dhw.data").getPath());
         conf.put("dhw-system.buffer", getClass().getClassLoader().getResource("w1-buffer.data").getPath());
         DeploymentOptions options = new DeploymentOptions().setConfig(conf);
-        vertx.deployVerticle(Ds18b20Verticle.class.getName(), options, context.asyncAssertSuccess());
+        vertx.deployVerticle(DomesticHotWaterVerticle.class.getName(), options, context.asyncAssertSuccess());
     }
 
 
