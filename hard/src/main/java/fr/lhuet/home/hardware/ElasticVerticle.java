@@ -42,18 +42,31 @@ public class ElasticVerticle extends AbstractVerticle {
                 logger.info(msg.body());
                 String index = msg.body().getString("index");
                 String docType = msg.body().getString("type");
+                String idDoc = msg.body().getString("id");
                 String docToIndex = msg.body().getJsonObject("source").toString();
                 HttpEntity entity = new NStringEntity(docToIndex, ContentType.APPLICATION_JSON);
 
                 vertx.executeBlocking(futIndex -> {
                     JsonObject response = new JsonObject();
                     try {
-                        Response indexResponse = esClient.performRequest(
-                                "POST",
-                                elasticUrlPrefix + "/" + index + "/" + docType,
-                                Collections.<String, String>emptyMap(),
-                                entity
-                        );
+                        Response indexResponse;
+                        if (idDoc == null) {
+                            // Id auto-generated
+                            indexResponse = esClient.performRequest(
+                                    "POST",
+                                    elasticUrlPrefix + "/" + index + "/" + docType,
+                                    Collections.<String, String>emptyMap(),
+                                    entity
+                            );
+                        }
+                        else {
+                            indexResponse = esClient.performRequest(
+                                    "PUT",
+                                    elasticUrlPrefix + "/" + index + "/" + docType + "/" + idDoc,
+                                    Collections.<String, String>emptyMap(),
+                                    entity
+                            );
+                        }
                         // TODO Manage ES Client return status / error
                         response.put("StatusCode", indexResponse.getStatusLine().getStatusCode());
 

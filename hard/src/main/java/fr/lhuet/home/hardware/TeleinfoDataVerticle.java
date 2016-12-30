@@ -97,6 +97,7 @@ public class TeleinfoDataVerticle extends AbstractVerticle {
         JsonObject message = new JsonObject()
                 .put("index", ES_INDEX)
                 .put("type", ES_TYPE_DOC)
+                .put("id", "ti_" + Instant.now().toEpochMilli())
                 .put("source", docToindex);
 
         vertx.eventBus().send("elastic.index", message, msg -> {

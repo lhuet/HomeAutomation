@@ -126,6 +126,7 @@ public class DomesticHotWaterVerticle extends AbstractVerticle {
         JsonObject message = new JsonObject()
                                     .put("index", ES_INDEX)
                                     .put("type", ES_TYPE_DOC)
+                                    .put("id", "dhw_" + Instant.now().toEpochMilli())
                                     .put("source", docToindex);
 
         vertx.eventBus().send("elastic.index", message, msg -> {
