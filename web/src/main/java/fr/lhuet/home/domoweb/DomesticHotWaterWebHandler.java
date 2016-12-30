@@ -14,7 +14,9 @@ public class DomesticHotWaterWebHandler {
     public static void getBufferTemperature(RoutingContext ctx) {
 
         ctx.vertx().eventBus().send("dhw-temp", "buffer", response -> {
-            ctx.response().end(response.result().body().toString());
+            ctx.response()
+                    .putHeader("content-type", "application/json")
+                    .end(response.result().body().toString());
         });
 
     }
@@ -22,7 +24,9 @@ public class DomesticHotWaterWebHandler {
     public static void getDhwTemperature(RoutingContext ctx) {
 
         ctx.vertx().eventBus().send("dhw-temp", "dhw", response -> {
-            ctx.response().end(response.result().body().toString());
+            ctx.response()
+                    .putHeader("content-type", "application/json")
+                    .end(response.result().body().toString());
         });
 
     }
@@ -30,7 +34,9 @@ public class DomesticHotWaterWebHandler {
     public static void getTemperature(RoutingContext ctx) {
 
         ctx.vertx().eventBus().send("dhw-temp", "", response -> {
-            ctx.response().end(response.result().body().toString());
+            ctx.response()
+                    .putHeader("content-type", "application/json")
+                    .end(response.result().body().toString());
         });
     }
 

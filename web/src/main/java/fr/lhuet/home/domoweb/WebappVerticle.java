@@ -33,7 +33,6 @@ public class WebappVerticle extends AbstractVerticle {
         router.get("/rest/teleinfo/index").handler(TeleinfoWebHandler::getIndex);
         router.get("/rest/teleinfo/p").handler(TeleinfoWebHandler::getPapp);
         router.get("/rest/teleinfo").handler(TeleinfoWebHandler::getTeleinfo);
-        //router.get("/rest/teleinfo/:year/:month/:day").handler(TeleinfoWebHandler::getTeleinfoDataByDay);
 
         router.get("/rest/dhw/dhw").handler(DomesticHotWaterWebHandler::getDhwTemperature);
         router.get("/rest/dhw/buffer").handler(DomesticHotWaterWebHandler::getBufferTemperature);
