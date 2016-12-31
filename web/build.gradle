@@ -2,7 +2,7 @@
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '1.2.2'
+    id 'org.hidetake.ssh' version '2.7.0'
 }
 
 repositories {
@@ -33,14 +33,23 @@ test {
     }
 }
 
+remotes {
+    bbw {
+        host = '192.168.0.11'
+        user = 'debian'
+        identity = file('/home/lhuet/.ssh/id_rsa')
+    }
+}
 
-shadowJar {
-    classifier = 'fat'
-    manifest {
-        attributes 'Main-Verticle': 'fr.lhuet.home.domoweb.WebappVerticle'
+task deploy(dependsOn: distZip) {
+
+    doLast {
+        ssh.run {
+            session(remotes.bbw) {
+                put from: "$buildDir/distributions/$project.name-$project.version"+".zip", into: "/home/debian/vertx3/"
+            }
+        }
     }
-    mergeServiceFiles {
-        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
-    }
+
 }
 
