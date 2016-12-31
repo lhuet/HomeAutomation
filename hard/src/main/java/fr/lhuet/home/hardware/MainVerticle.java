@@ -38,6 +38,7 @@ public class MainVerticle extends AbstractVerticle {
             vertx.deployVerticle(TeleinfoHardwareVerticle.class.getName(), options);
             vertx.deployVerticle(TeleinfoDataVerticle.class.getName());
             vertx.deployVerticle(DomesticHotWaterVerticle.class.getName(), options);
+            vertx.deployVerticle(WeatherVerticle.class.getName(), options);
         });
 
 //        JsonObject config = new JsonObject();
