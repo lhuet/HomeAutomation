@@ -1,0 +1,12 @@
+[Unit]
+Description=Domo Hard service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+User=debian
+Group=debian
+
+ExecStart=/home/debian/vertx3/hard-1.0-SNAPSHOT/bin/start.sh
+ExecStop=/home/debian/vertx3/hard-1.0-SNAPSHOT/bin/stop.sh
